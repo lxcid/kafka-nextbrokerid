@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a small utility Java program that connects to [Zookeeper](https://zookeeper.apache.org) to figure out the next broker ID available. We make several assumptions:
+This is a small utility Java program that connects to [Zookeeper](https://zookeeper.apache.org) to figure out the next available broker ID for [Kafka](https://kafka.apache.org). We make several assumptions:
 
 - Zookeeper keeps the currently used IDs by Kafka in `/brokers/ids`.
 - Possible IDs are sequential from `start` to `start + total`.
