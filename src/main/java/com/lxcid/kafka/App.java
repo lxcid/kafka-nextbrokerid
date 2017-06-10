@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -73,14 +74,14 @@ public class App {
                 throw new TimeoutException("Timeout while connecting to " + zookeeperConnect + ".");
             }
             List<String> usedIDs = zookeeper.getChildren("/brokers/ids", false);
-            HashSet<String> possibleIDs = new HashSet<String>(100);
+            HashSet<Integer> possibleIDs = new HashSet<Integer>(total);
             for (int i = start; i < start + total; i++) {
-                possibleIDs.add(Integer.toString(i));
+                possibleIDs.add(i);
             }
-            possibleIDs.removeAll(usedIDs);
-            List<String> availableIDs = new ArrayList<String>(possibleIDs);
+            possibleIDs.removeAll(usedIDs.stream().map(Integer::parseInt).collect(Collectors.toList()));
+            List<Integer> availableIDs = new ArrayList<Integer>(possibleIDs);
             Collections.sort(availableIDs);
-            String nextBrokerID = availableIDs.get(0);
+            Integer nextBrokerID = availableIDs.get(0);
             System.out.println(nextBrokerID);
         } catch (IOException|InterruptedException|TimeoutException|KeeperException e) {
             System.out.println(e.getMessage());
