@@ -14,12 +14,12 @@ This utility is very useful for scaling Kafka in a containerized environment.
 
 ## Usage
 
-Downloads from latest release (v1.0.0).
+Downloads from latest release (v1.0.1).
 
 ```
 # wget
 wget \
-  -q https://github.com/lxcid/kafka-nextbrokerid/releases/download/v1.0.0/nextbrokerid.jar \
+  -q https://github.com/lxcid/kafka-nextbrokerid/releases/download/v1.0.1/nextbrokerid.jar \
   -O /tmp/nextbrokerid.jar
 ```
 
@@ -28,6 +28,10 @@ Get next broker ID.
 ```sh
 java -jar nextbrokerid.jar -zkc localhost:2181 --start 1 --total 100 --timeout 30000
 ```
+
+## Issues
+
+- ⚠️ Care must be taken as the time between acquiring the next broker ID and assigning that broker ID to a Kafka instance is substantial. Race condition can occurs.
 
 ## References
 
