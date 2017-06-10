@@ -1,32 +1,30 @@
 package com.lxcid.kafka;
 
-import java.io.IOException;
 import java.lang.InterruptedException;
-import java.util.concurrent.TimeoutException;
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.ZooKeeper;
 
 public class App {
     public static void main(String[] args) {
-        Logger.getLogger("log4j").setLevel(Level.OFF);
-
         Options options = new Options();
 
         Option zkcOpt = new Option("zkc", "zookeeper-connect", true, "Zookeeper Connect");
