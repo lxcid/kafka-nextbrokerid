@@ -5,9 +5,10 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,6 +32,15 @@ public class App {
         zkcOpt.setRequired(true);
         options.addOption(zkcOpt);
 
+        Option timeoutOpt = new Option("t", "timeout", true, "Timeout in milliseconds (Default to 30000)");
+        options.addOption(timeoutOpt);
+
+        Option startOpt = new Option("s", "start", true, "First Broker ID (Default to 1)");
+        options.addOption(startOpt);
+
+        Option totalOpt = new Option("tt", "total", true, "Total possible IDs (Default to 100)");
+        options.addOption(totalOpt);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -39,32 +49,39 @@ public class App {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("utility-name", options);
+            formatter.printHelp("nextbrokerid", options);
             
             System.exit(1);
             return;
         }
         
         String zookeeperConnect = cmd.getOptionValue("zookeeper-connect");
-
-        final CountDownLatch connSignal = new CountDownLatch(1);
+        int timeout = Integer.parseInt(cmd.getOptionValue("timeout", "30000"));
+        int start = Integer.parseInt(cmd.getOptionValue("start", "1"));
+        int total = Integer.parseInt(cmd.getOptionValue("total", "100"));
 
         try {
-            System.out.println("Connecting to " + zookeeperConnect + "…");
-            ZooKeeper zk = new ZooKeeper(zookeeperConnect, 30000, new Watcher() {
+            final CountDownLatch connSignal = new CountDownLatch(1);
+            ZooKeeper zookeeper = new ZooKeeper(zookeeperConnect, timeout, new Watcher() {
                 public void process(WatchedEvent event) {
                     if (event.getState() == KeeperState.SyncConnected) {
                         connSignal.countDown();
                     }
                 }
             });
-            if (!connSignal.await(30000, TimeUnit.MILLISECONDS)) {
+            if (!connSignal.await(timeout, TimeUnit.MILLISECONDS)) {
                 throw new TimeoutException("Timeout while connecting to " + zookeeperConnect + ".");
             }
-            System.out.println("Connected to " + zookeeperConnect + ".");
-
-            List<String> ids = zk.getChildren("/brokers/ids", false);
-            System.out.println(ids);
+            List<String> usedIDs = zookeeper.getChildren("/brokers/ids", false);
+            HashSet<String> possibleIDs = new HashSet<String>(100);
+            for (int i = start; i < start + total; i++) {
+                possibleIDs.add(Integer.toString(i));
+            }
+            possibleIDs.removeAll(usedIDs);
+            List<String> availableIDs = new ArrayList<String>(possibleIDs);
+            Collections.sort(availableIDs);
+            String nextBrokerID = availableIDs.get(0);
+            System.out.println(nextBrokerID);
         } catch (IOException|InterruptedException|TimeoutException|KeeperException e) {
             System.out.println(e.getMessage());
             
